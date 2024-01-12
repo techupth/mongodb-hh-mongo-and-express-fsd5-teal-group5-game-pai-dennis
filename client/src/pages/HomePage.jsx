@@ -8,7 +8,7 @@ function HomePage() {
   const [products, setProducts] = useState([]);
   const [isError, setIsError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
-
+  const [category, setCategory] = useState("");
   const getProducts = async () => {
     try {
       setIsError(false);
@@ -24,7 +24,7 @@ function HomePage() {
 
   const deleteProduct = async (productId) => {
     await axios.delete(`http://localhost:4001/products/${productId}`);
-    const newProducts = products.filter((product) => product.id !== productId);
+    const newProducts = products.filter((product) => product._id !== productId);
     setProducts(newProducts);
   };
 
@@ -32,6 +32,9 @@ function HomePage() {
     getProducts();
   }, []);
 
+  function handleChange(e) {
+    console.log(e.target.value);
+  }
   return (
     <div>
       <div className="app-wrapper">
@@ -54,13 +57,18 @@ function HomePage() {
         <div className="category-filter">
           <label>
             View Category
-            <select id="category" name="category" value="it">
-              <option disabled value="">
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={handleChange}
+            >
+              <option disabled value={""}>
                 -- Select a category --
               </option>
-              <option value="it">IT</option>
-              <option value="fashion">Fashion</option>
-              <option value="food">Food</option>
+              <option value="IT">IT</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Food">Food</option>
             </select>
           </label>
         </div>
@@ -85,7 +93,7 @@ function HomePage() {
               <div className="product-detail">
                 <h1>Product name: {product.name} </h1>
                 <h2>Product price: {product.price}</h2>
-                <h3>Category: IT</h3>
+                <h3>Category: {product.category}</h3>
                 <h3>Created Time: 1 Jan 2011, 00:00:00</h3>
                 <p>Product description: {product.description} </p>
                 <div className="product-actions">
