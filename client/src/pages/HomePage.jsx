@@ -9,12 +9,40 @@ function HomePage() {
   const [isError, setIsError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
   const [category, setCategory] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPage, setTotalPage] = useState("Total Page");
+  function displayTime(createTime) {
+    const date = new Date(createTime);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    return `${date.getDate()} ${
+      months[date.getMonth()]
+    } ${date.getFullYear()} ${date.toLocaleTimeString()}`;
+  }
+
   const getProducts = async () => {
     try {
       setIsError(false);
       setIsLoading(true);
-      const results = await axios("http://localhost:4001/products");
+      const results = await axios(
+        `http://localhost:4001/products?keywords=${keywords}&category=${category}&page=${page}`
+      );
       setProducts(results.data.data);
+      setTotalPage(results.data.totalPage);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -24,17 +52,20 @@ function HomePage() {
 
   const deleteProduct = async (productId) => {
     await axios.delete(`http://localhost:4001/products/${productId}`);
-    const newProducts = products.filter((product) => product._id !== productId);
+    // const newProducts = products.filter((product) => product._id !== productId);
+    getProducts();
     setProducts(newProducts);
   };
 
   useEffect(() => {
     getProducts();
-  }, []);
+  }, [keywords, category, page, totalPage]);
 
   function handleChange(e) {
-    console.log(e.target.value);
+    setCategory(e.target.value);
+    setPage(0);
   }
+
   return (
     <div>
       <div className="app-wrapper">
@@ -51,7 +82,15 @@ function HomePage() {
         <div className="search-box">
           <label>
             Search product
-            <input type="text" placeholder="Search by name" />
+            <input
+              type="text"
+              placeholder="Search by name"
+              value={keywords}
+              onChange={(e) => {
+                setKeywords(e.target.value);
+                setPage(0);
+              }}
+            />
           </label>
         </div>
         <div className="category-filter">
@@ -63,9 +102,8 @@ function HomePage() {
               value={category}
               onChange={handleChange}
             >
-              <option disabled value={""}>
-                -- Select a category --
-              </option>
+              {/* <option disabled>-- Select a category --</option> */}
+              <option value="">All Categories</option>
               <option value="IT">IT</option>
               <option value="Fashion">Fashion</option>
               <option value="Food">Food</option>
@@ -94,7 +132,8 @@ function HomePage() {
                 <h1>Product name: {product.name} </h1>
                 <h2>Product price: {product.price}</h2>
                 <h3>Category: {product.category}</h3>
-                <h3>Created Time: 1 Jan 2011, 00:00:00</h3>
+                <h3>Created Time: {displayTime(product.created_at)}</h3>
+
                 <p>Product description: {product.description} </p>
                 <div className="product-actions">
                   <button
@@ -132,10 +171,36 @@ function HomePage() {
       </div>
 
       <div className="pagination">
-        <button className="previous-button">Previous</button>
-        <button className="next-button">Next</button>
+        <button
+          className="previous-button"
+          onClick={() => {
+            if (page + 1 > 1) {
+              setPage(page - 1);
+              window.scrollTo(0, 0);
+            }
+          }}
+        >
+          Previous
+        </button>
+        <button
+          className="next-button"
+          onClick={() => {
+            if (page + 1 < totalPage) {
+              setPage(page + 1);
+              window.scrollTo(0, 0);
+            }
+          }}
+        >
+          Next
+        </button>
       </div>
-      <div className="pages">1/ total page</div>
+      {products.length === 0 ? (
+        <div className="pages"></div>
+      ) : (
+        <div className="pages">
+          {page + 1}/ {totalPage}
+        </div>
+      )}
     </div>
   );
 }
