@@ -20,8 +20,8 @@ function HomePage() {
       const results = await axios.get(
         `http://localhost:4001/products?category=${category}&keywords=${serchName}&page=${page}`
       );
+      
 
-      console.log(results.data);
       setProducts(results.data.data);
       setTotalPage(results.data.totalPage);
 
@@ -34,8 +34,13 @@ function HomePage() {
 
   const deleteProduct = async (productId) => {
     await axios.delete(`http://localhost:4001/products/${productId}`);
-    const newProducts = products.filter((product) => product._id !== productId);
-    setProducts(newProducts);
+
+    const results = await axios.get(
+      `http://localhost:4001/products?category=${category}&keywords=${serchName}&page=${page}`
+    );
+
+    setProducts(results.data.data);
+    setTotalPage(results.data.totalPage);
   };
 
   const convertDate = (isoDate) => {

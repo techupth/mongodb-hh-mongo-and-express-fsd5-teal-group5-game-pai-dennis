@@ -5,27 +5,29 @@ import { ObjectId } from "mongodb";
 const productRouter = Router();
 
 productRouter.get("/", async (req, res) => {
-
   const collection = db.collection("Products");
-  
-  const categoryList = {}
-  
-  if (req.query.category) {
-    categoryList['category']= req.query.category
-  }
 
+  const categoryList = {};
+
+  if (req.query.category) {
+    categoryList["category"] = req.query.category;
+  }
 
   if (req.query.keywords) {
-    categoryList['name'] = new RegExp(req.query.keywords, 'i')
+    categoryList["name"] = new RegExp(req.query.keywords, "i");
   }
 
+  const productData = await collection
+    .find(categoryList)
+    .sort({ createdDate: -1 })
+    .skip(req.query.page > 0 ? (req.query.page - 1) * 5 : 0)
+    .limit(5)
+    .toArray();
+  const ProductDataAll = await collection.find(categoryList).toArray();
 
-  const productData = await collection.find(categoryList).sort({ createdDate: -1 }).skip( req.query.page > 0 ? ( ( req.query.page - 1 ) * 5 ) : 0 ).limit(5).toArray();
-  const ProductDataAll =   await collection.find(categoryList).toArray()
+  const totalPage =Math.ceil(ProductDataAll.length / 5);
 
-  const totalPage = Math.ceil(ProductDataAll.length/5)
-
-  return res.json({ data: productData , totalPage : totalPage});
+  return res.json({ data: productData, totalPage: totalPage });
 });
 
 productRouter.get("/:id", async (req, res) => {
@@ -43,8 +45,7 @@ productRouter.post("/", async (req, res) => {
 
   var isoDate = new Date();
 
-
-  const productData = { ...req.body,  createdDate: isoDate};
+  const productData = { ...req.body, createdDate: isoDate };
 
   const products = await collection.insertOne(productData);
 
