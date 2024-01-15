@@ -9,13 +9,22 @@ function HomePage() {
   const [isError, setIsError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
   const [category, setCategory] = useState("");
+  const [serchName, setSearchName] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
 
   const getProducts = async () => {
     try {
       setIsError(false);
       setIsLoading(true);
-      const results = await axios.get("http://localhost:4001/products");
+      const results = await axios.get(
+        `http://localhost:4001/products?category=${category}&keywords=${serchName}&page=${page}`
+      );
+
+      console.log(results.data);
       setProducts(results.data.data);
+      setTotalPage(results.data.totalPage);
+
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -25,35 +34,49 @@ function HomePage() {
 
   const deleteProduct = async (productId) => {
     await axios.delete(`http://localhost:4001/products/${productId}`);
-    const newProducts = products.filter((product) => product.id !== productId);
+    const newProducts = products.filter((product) => product._id !== productId);
     setProducts(newProducts);
   };
 
+  const convertDate = (isoDate) => {
+    const date = new Date(isoDate);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const dateTime = `${date.getDate()} ${
+      months[date.getMonth()]
+    } ${date.getFullYear()} ${date.toLocaleTimeString()}`;
+    return dateTime;
+  };
 
-
-  const filteredCategory = async () => {
-   
-    const results = await axios.get("http://localhost:4001/products");
-
-    let filterProduct = results.data.data
-
-    if(category!="")
-    {
-    filterProduct = filterProduct.filter((item) => item.category === category)
+  const pageShift = (shift) => {
+    if (shift === -1 && page + shift > 0) {
+      setPage(page + shift);
     }
- 
-    setProducts(filterProduct)
-  }
-  
+
+    if (shift === 1 && page + shift <= totalPage) {
+      setPage(page + shift);
+    }
+  };
 
   useEffect(() => {
     getProducts();
-  }, []);
-
+  }, [category, serchName, page]);
 
   useEffect(() => {
-    filteredCategory();
-  }, [category, products]);
+    setPage(1);
+  }, [category, serchName]);
 
   return (
     <div>
@@ -71,16 +94,27 @@ function HomePage() {
         <div className="search-box">
           <label>
             Search product
-            <input type="text" placeholder="Search by name" />
+            <input
+              type="text"
+              placeholder="Search by name"
+              value={serchName}
+              onChange={(event) => setSearchName(event.target.value)}
+            />
           </label>
         </div>
         <div className="category-filter">
           <label>
             View Category
-            <select id="category" name="category" value={category} onChange={(event) => setCategory(event.target.value)}>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+            >
               <option disabled value="">
                 -- Select a category --
               </option>
+              <option value="">All</option>
               <option value="it">IT</option>
               <option value="fashion">Fashion</option>
               <option value="food">Food</option>
@@ -109,6 +143,7 @@ function HomePage() {
                 <h1>Product name: {product.name} </h1>
                 <h2>Product price: {product.price}</h2>
                 <h3>Category: {product.category}</h3>
+                <h3>Created Time: {convertDate(product.createdDate)}</h3>
                 <h3>Created Time: 1 Jan 2011, 00:00:00</h3>
                 <p>Product description: {product.description} </p>
                 <div className="product-actions">
@@ -147,10 +182,26 @@ function HomePage() {
       </div>
 
       <div className="pagination">
-        <button className="previous-button">Previous</button>
-        <button className="next-button">Next</button>
+        <button
+          className="previous-button"
+          onClick={() => {
+            pageShift(-1);
+          }}
+        >
+          Previous
+        </button>
+        <button
+          className="next-button"
+          onClick={() => {
+            pageShift(1);
+          }}
+        >
+          Next
+        </button>
       </div>
-      <div className="pages">1/ total page</div>
+      <div className="pages">
+        {page}/ {totalPage}
+      </div>
     </div>
   );
 }
