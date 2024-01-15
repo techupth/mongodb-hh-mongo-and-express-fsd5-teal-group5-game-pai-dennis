@@ -4,10 +4,12 @@ import axios from "axios";
 
 function CreateProductForm() {
   const [name, setName] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(
+    "http://dummyimage.com/350x350.png/dddddd/000000"
+  );
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-
+  const [category, setCategory] = useState("");
   const navigate = useNavigate();
 
   const createProducts = async () => {
@@ -16,6 +18,7 @@ function CreateProductForm() {
       image: imageUrl,
       price,
       description,
+      category: category,
     });
     navigate("/");
   };
@@ -94,13 +97,20 @@ function CreateProductForm() {
       <div className="input-container">
         <label>
           Category
-          <select id="category" name="category" value="it">
+          <select
+            id="category"
+            name="category"
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+            }}
+          >
             <option disabled value="">
               -- Select a category --
             </option>
-            <option value="it">IT</option>
-            <option value="fashion">Fashion</option>
-            <option value="food">Food</option>
+            <option value="IT">IT</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Food">Food</option>
           </select>
         </label>
       </div>
